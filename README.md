@@ -17,7 +17,7 @@
 
 ## 为什么用 Java
 
-- 你对 Java 更熟悉，维护成本更低
+- 我对 Java 更熟悉，维护成本更低
 - Android 蓝牙、位置、通知、Room 都可以直接用 Java 实现
 - UI 选 `XML + AppCompat`，避免 Kotlin/Compose 学习成本
 
