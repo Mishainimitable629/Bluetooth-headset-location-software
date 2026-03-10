@@ -38,9 +38,9 @@ public final class Formatters {
 
     public static String formatLastEventSummary(@Nullable LostEvent event) {
         if (event == null) {
-            return "最近事件：还没有耳机断开记录";
+            return "最近事件：还没有蓝牙连接记录";
         }
-        return "最近事件：" + formatTime(event.eventTimeMs) + "，" + formatCoordinates(event.latitude, event.longitude)
+        return "最近事件：" + formatEventType(event) + " · " + formatTime(event.eventTimeMs) + "，" + formatCoordinates(event.latitude, event.longitude)
                 + (event.atHome ? "，在家范围内" : "，可能遗落在外面");
     }
 
@@ -55,7 +55,7 @@ public final class Formatters {
     }
 
     public static String formatEventTitle(LostEvent event) {
-        return formatTime(event.eventTimeMs) + " · " + event.deviceName;
+        return formatEventType(event) + " · " + formatTime(event.eventTimeMs) + " · " + event.deviceName;
     }
 
     public static String formatEventMeta(LostEvent event) {
@@ -65,8 +65,12 @@ public final class Formatters {
         String locationTimeText = event.locationSampleTimeMs == null
                 ? "位置时间未知"
                 : "位置样本 " + formatTime(event.locationSampleTimeMs);
-        return event.eventSource + " · " + accuracyText + " · " + locationTimeText
+        return formatEventType(event) + " · " + event.eventSource + " · " + accuracyText + " · " + locationTimeText
                 + (event.atHome ? " · 家里范围内" : " · 家外提醒");
+    }
+
+    private static String formatEventType(LostEvent event) {
+        return "CONNECTED".equalsIgnoreCase(event.eventType) ? "已连接" : "已断开";
     }
 
     public static String formatEventLocation(LostEvent event) {

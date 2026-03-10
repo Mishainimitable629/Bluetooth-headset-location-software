@@ -1,5 +1,10 @@
 package com.example.freeclipguard.model;
 
+/**
+ * 使用Mac地址作为唯一标识，避免因设备重命名导致的识别问题
+ * 
+ * @author xiaowu
+ */
 public final class BoundDevice {
 
     private final String name;

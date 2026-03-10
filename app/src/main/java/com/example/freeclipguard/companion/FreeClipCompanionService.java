@@ -13,7 +13,14 @@ public class FreeClipCompanionService extends CompanionDeviceService {
         BoundDeviceStore boundDeviceStore = new BoundDeviceStore(this);
         BoundDevice boundDevice = boundDeviceStore.getBoundDevice();
         if (boundDevice.matchesAddress(address)) {
-            boundDeviceStore.markConnectedNow();
+            LostEventRepository.getInstance(this).recordConnect(
+                    boundDeviceStore,
+                    null,
+                    "COMPANION_APPEARED",
+                    null,
+                    "伴生设备服务检测到耳机已连接，已自动记录当前位置",
+                    null
+            );
         }
     }
 

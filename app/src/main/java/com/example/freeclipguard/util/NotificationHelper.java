@@ -21,6 +21,7 @@ public final class NotificationHelper {
 
     private static final String CHANNEL_ID = "earguard_alerts";
     private static final int ALERT_NOTIFICATION_ID = 1001;
+    private static final int CONNECTED_NOTIFICATION_ID = 1002;
     private static final int HISTORY_REQUEST_CODE = 1;
 
     private NotificationHelper() {
@@ -71,6 +72,54 @@ public final class NotificationHelper {
 
         try {
             NotificationManagerCompat.from(context).notify(ALERT_NOTIFICATION_ID, builder.build());
+        }
+        catch (SecurityException ignored) {
+        }
+    }
+
+    public static void showConnectionRecorded(Context context, LostEvent event) {
+        ensureChannel(context);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Intent intent = new Intent(context, EventHistoryActivity.class);
+        PendingIntent historyPendingIntent = PendingIntent.getActivity(
+                context,
+                HISTORY_REQUEST_CODE + 1,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        PendingIntent mapPendingIntent = MapIntentHelper.buildMapPendingIntent(context, event, buildMapRequestCode(event));
+
+        String contentText = context.getString(
+                R.string.notification_connection_detail,
+                Formatters.formatCoordinates(event.latitude, event.longitude),
+                Formatters.formatTime(event.eventTimeMs)
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+                .setContentTitle(context.getString(R.string.notification_connected_title))
+                .setContentText(contentText)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(contentText))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setAutoCancel(true)
+                .setContentIntent(historyPendingIntent)
+                .addAction(android.R.drawable.ic_menu_recent_history,
+                        context.getString(R.string.action_open_history),
+                        historyPendingIntent);
+
+        if (mapPendingIntent != null) {
+            builder.addAction(android.R.drawable.ic_dialog_map,
+                    context.getString(R.string.action_open_map),
+                    mapPendingIntent);
+        }
+
+        try {
+            NotificationManagerCompat.from(context).notify(CONNECTED_NOTIFICATION_ID, builder.build());
         }
         catch (SecurityException ignored) {
         }

@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 public final class LostEventRepository {
 
     private static final long DUPLICATE_WINDOW_MS = 45_000L;
+    private static final String EVENT_TYPE_CONNECTED = "CONNECTED";
+    private static final String EVENT_TYPE_DISCONNECTED = "DISCONNECTED";
 
     private static volatile LostEventRepository instance;
 
@@ -53,11 +55,36 @@ public final class LostEventRepository {
             @Nullable Integer rssi,
             @Nullable String note,
             @Nullable Runnable onComplete) {
+        recordEvent(boundDeviceStore, bluetoothDevice, source, EVENT_TYPE_DISCONNECTED, rssi, note, onComplete);
+    }
+
+    public void recordConnect(BoundDeviceStore boundDeviceStore,
+            @Nullable BluetoothDevice bluetoothDevice,
+            String source,
+            @Nullable Integer rssi,
+            @Nullable String note,
+            @Nullable Runnable onComplete) {
+        recordEvent(boundDeviceStore, bluetoothDevice, source, EVENT_TYPE_CONNECTED, rssi, note, onComplete);
+    }
+
+    private void recordEvent(BoundDeviceStore boundDeviceStore,
+            @Nullable BluetoothDevice bluetoothDevice,
+            String source,
+            String eventType,
+            @Nullable Integer rssi,
+            @Nullable String note,
+            @Nullable Runnable onComplete) {
         executorService.execute(() -> {
             BoundDevice boundDevice = boundDeviceStore.getBoundDevice();
-            boundDeviceStore.setDeviceConnected(false);
+            boolean connected = EVENT_TYPE_CONNECTED.equals(eventType);
+            if (connected) {
+                boundDeviceStore.markConnectedNow();
+            }
+            else {
+                boundDeviceStore.setDeviceConnected(false);
+            }
             String disconnectPrompt = boundDeviceStore.getDisconnectAlertPrompt();
-            LocationSnapshot snapshot = LocationSnapshotProvider.getBestEffortSnapshot(appContext);
+            LocationSnapshot snapshot = LocationSnapshotProvider.getFreshSnapshot(appContext);
             boolean atHome = boundDeviceStore.isAtHome(snapshot);
 
             LostEvent event = new LostEvent();
@@ -69,7 +96,7 @@ public final class LostEventRepository {
             event.accuracyMeters = snapshot == null ? null : snapshot.getAccuracyMeters();
             event.locationSampleTimeMs = snapshot == null ? null : snapshot.getTimestampMs();
             event.eventSource = source;
-            event.eventType = "DISCONNECTED";
+            event.eventType = eventType;
             event.rssi = rssi;
             event.atHome = atHome;
             event.note = note;
@@ -81,10 +108,12 @@ public final class LostEventRepository {
             }
             event.id = appDatabase.lostEventDao().insert(event);
 
-            DisconnectOverlayManager.show(appContext, event, disconnectPrompt);
-
-            if (!atHome) {
+            if (!connected) {
+                DisconnectOverlayManager.show(appContext, event, disconnectPrompt);
                 NotificationHelper.showDisconnectAlert(appContext, event, disconnectPrompt);
+            }
+            else {
+                NotificationHelper.showConnectionRecorded(appContext, event);
             }
             if (onComplete != null) {
                 mainHandler.post(onComplete);
@@ -127,7 +156,7 @@ public final class LostEventRepository {
         if (event.deviceAddress == null || event.deviceAddress.isBlank()) {
             return false;
         }
-        LostEvent latest = appDatabase.lostEventDao().findLatestForDevice(event.deviceAddress);
+        LostEvent latest = appDatabase.lostEventDao().findLatestForDeviceAndType(event.deviceAddress, event.eventType);
         if (latest == null) {
             return false;
         }

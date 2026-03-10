@@ -21,6 +21,7 @@ public final class BoundDeviceStore {
     private static final String KEY_HOME_RADIUS = "home_radius";
     private static final String KEY_HOME_ENABLED = "home_enabled";
     private static final String KEY_LAST_CONNECTED_AT = "last_connected_at";
+    private static final String KEY_INTRO_COMPLETED = "intro_completed";
     private static final String KEY_ONBOARDING_COMPLETED = "onboarding_completed";
     private static final String KEY_COMPANION_ENABLED = "companion_enabled";
     private static final String KEY_DEVICE_CONNECTED = "device_connected";
@@ -51,8 +52,7 @@ public final class BoundDeviceStore {
     public BoundDevice getBoundDevice() {
         return new BoundDevice(
                 preferences.getString(KEY_DEVICE_NAME, ""),
-                preferences.getString(KEY_DEVICE_ADDRESS, "")
-        );
+                preferences.getString(KEY_DEVICE_ADDRESS, ""));
     }
 
     public void saveHomeLocation(LocationSnapshot snapshot, float radiusMeters) {
@@ -78,10 +78,8 @@ public final class BoundDeviceStore {
             return new HomeLocation(
                     Double.parseDouble(latitude),
                     Double.parseDouble(longitude),
-                    preferences.getFloat(KEY_HOME_RADIUS, 120F)
-            );
-        }
-        catch (NumberFormatException ignored) {
+                    preferences.getFloat(KEY_HOME_RADIUS, 120F));
+        } catch (NumberFormatException ignored) {
             return null;
         }
     }
@@ -97,8 +95,7 @@ public final class BoundDeviceStore {
                 homeLocation.getLongitude(),
                 snapshot.getLatitude(),
                 snapshot.getLongitude(),
-                results
-        );
+                results);
         return results[0] <= homeLocation.getRadiusMeters();
     }
 
@@ -123,6 +120,14 @@ public final class BoundDeviceStore {
 
     public void setOnboardingCompleted(boolean completed) {
         preferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, completed).apply();
+    }
+
+    public void setIntroCompleted(boolean completed) {
+        preferences.edit().putBoolean(KEY_INTRO_COMPLETED, completed).apply();
+    }
+
+    public boolean isIntroCompleted() {
+        return preferences.getBoolean(KEY_INTRO_COMPLETED, false);
     }
 
     public boolean isOnboardingCompleted() {

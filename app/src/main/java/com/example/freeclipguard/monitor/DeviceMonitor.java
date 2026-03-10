@@ -30,8 +30,14 @@ public final class DeviceMonitor {
             }
 
             if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                boundDeviceStore.markConnectedNow();
-                pendingResult.finish();
+                LostEventRepository.getInstance(context).recordConnect(
+                        boundDeviceStore,
+                        bluetoothDevice,
+                        "ACL_CONNECTED",
+                        null,
+                        "系统蓝牙连接建立，已自动记录当前位置",
+                        pendingResult::finish
+                );
                 return;
             }
 

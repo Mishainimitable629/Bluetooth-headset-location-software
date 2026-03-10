@@ -18,6 +18,9 @@ public interface LostEventDao {
     @Query("SELECT * FROM lost_events WHERE deviceAddress = :deviceAddress ORDER BY eventTimeMs DESC LIMIT 1")
     LostEvent findLatestForDevice(String deviceAddress);
 
+    @Query("SELECT * FROM lost_events WHERE deviceAddress = :deviceAddress AND eventType = :eventType ORDER BY eventTimeMs DESC LIMIT 1")
+    LostEvent findLatestForDeviceAndType(String deviceAddress, String eventType);
+
     @Query("SELECT * FROM lost_events ORDER BY eventTimeMs DESC LIMIT :limit")
     List<LostEvent> listRecent(int limit);
 }

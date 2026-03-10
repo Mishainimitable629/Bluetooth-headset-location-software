@@ -77,8 +77,7 @@ public class BindDeviceActivity extends AppCompatActivity {
             boundDeviceStore.saveBoundDevice(bluetoothDevice.getName(), bluetoothDevice.getAddress());
             Toast.makeText(this, "已绑定：" + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
             finish();
-        }
-        catch (SecurityException exception) {
+        } catch (SecurityException exception) {
             Toast.makeText(this, "读取设备信息失败，请检查蓝牙权限", Toast.LENGTH_SHORT).show();
         }
     }
@@ -97,8 +96,7 @@ public class BindDeviceActivity extends AppCompatActivity {
             if (normalizedName.contains("huawei")) {
                 return 80;
             }
-        }
-        catch (SecurityException ignored) {
+        } catch (SecurityException ignored) {
             return 0;
         }
         return 10;

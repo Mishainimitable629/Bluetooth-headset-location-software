@@ -95,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!boundDeviceStore.isIntroCompleted()) {
+            startActivity(new Intent(this, IntroActivity.class));
+            return;
+        }
         ensurePermissions();
         if (boundDeviceStore.isCompanionEnabled()) {
             CompanionAssociationManager.startPresenceObservation(this, boundDeviceStore, null);
